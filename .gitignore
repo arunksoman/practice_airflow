@@ -1,0 +1,8 @@
+airflow/logs/
+airflow/airflow.db
+airflow/airflow.cfg
+__pycache__/
+*.pyc
+.venv
+*_passwords.json.*
+*.csv

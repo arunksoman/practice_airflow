@@ -18,6 +18,16 @@ else
     uv venv --python 3.13.8 .venv
 fi
 
+# install required apt packages for mysqlclient
+echo "Installing required system packages..."
+sudo apt update --fix-missing
+sudo apt install -y \
+    python3-dev \
+    default-libmysqlclient-dev \
+    build-essential \
+    pkg-config
+
+
 # Activate virtual environment
 echo "Activating virtual environment..."
 source .venv/bin/activate
@@ -28,10 +38,14 @@ AIRFLOW_VERSION=3.1.5
 PYTHON_VERSION="$(python --version | cut -d " " -f 2 | cut -d "." -f 1-2)"
 CONSTRAINT_URL="https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt"
 
-uv pip install "apache-airflow==${AIRFLOW_VERSION}" --constraint "${CONSTRAINT_URL}"
+uv pip install "apache-airflow==${AIRFLOW_VERSION}" apache-airflow-providers-mysql apache-airflow-providers-elasticsearch --constraint "${CONSTRAINT_URL}"
 
 # Set Airflow home directory
 export AIRFLOW_HOME=$(pwd)/airflow
+export AIRFLOW__CORE__LOAD_EXAMPLES=False
+# mysql connection string for airflow metadata
+export AIRFLOW__DATABASE__SQL_ALCHEMY_CONN='mysql+mysqldb://appuser:apppassword@127.0.0.1:3306/airflowdb'
+
 
 # Initialize Airflow database
 echo ""
@@ -43,7 +57,7 @@ airflow db migrate
 # Or manage users through the web UI after starting the server
 
 echo ""
-echo "✓ Setup complete!"
+echo "Setup complete!"
 echo ""
 echo "Airflow home: ${AIRFLOW_HOME}"
 echo ""
